@@ -165,7 +165,11 @@ def main():
     # --- Header ---
     with centered_row():
         st.title("PERM Filing Dashboard")
-        st.write("")
+        st.markdown(
+            "Insights into **Program Electronic Review Management (PERM)** trends. "
+            "PERM is the process used by employers to obtain a permanent labor certification "
+            "for foreign nationals seeking to work in the United States."
+        )
 
     # --- Filters ---
     with centered_row():
