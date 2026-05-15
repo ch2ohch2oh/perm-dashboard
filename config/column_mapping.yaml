@@ -1,0 +1,89 @@
+columns:
+  employer_name:
+    - employer_name
+    - employer name
+    - employername
+    - employer
+    - emp_name
+    - emp_business_name
+    - emp_trade_name
+
+  case_status:
+    - case_status
+    - status
+    - final_case_status
+
+  decision_date:
+    - decision_date
+    - final_decision_date
+    - decisiondate
+
+  received_date:
+    - received_date
+    - case_received_date
+    - receiveddate
+
+  job_title:
+    - job_title
+    - pw_job_title
+    - jobtitle
+
+  worksite_city:
+    - worksite_city
+    - job_info_work_city
+    - work_city
+    - city
+    - primary_worksite_city
+
+  worksite_state:
+    - worksite_state
+    - job_info_work_state
+    - work_state
+    - state
+    - primary_worksite_state
+
+  wage_offer_from:
+    - wage_offer_from
+    - wage_from
+    - wage_rate_of_pay_from
+    - offered_wage_from
+    - job_opp_wage_from
+
+  wage_offer_to:
+    - wage_offer_to
+    - wage_to
+    - wage_rate_of_pay_to
+    - offered_wage_to
+    - job_opp_wage_to
+
+  wage_unit:
+    - wage_unit
+    - wage_offer_unit
+    - wage_rate_unit
+    - pw_unit_of_pay
+    - wage_offer_unit_of_pay
+    - job_opp_wage_per
+
+  pw_wage:
+    - pw_wage
+    - pw_wage_level
+    - pw_amount
+    - prevailing_wage
+
+  pw_unit:
+    - pw_unit
+    - pw_unit_of_pay
+    - prevailing_wage_unit
+
+  naics_code:
+    - naics_code
+    - naics
+    - employer_naics_code
+    - emp_naics
+
+  soc_code:
+    - soc_code
+    - pw_soc_code
+    - soc
+    - soc_occupation_code
+    - pwd_soc_code
