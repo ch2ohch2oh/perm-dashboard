@@ -27,6 +27,7 @@ columns:
     - job_title
     - pw_job_title
     - jobtitle
+    - job_info_job_title
 
   worksite_city:
     - worksite_city
@@ -48,6 +49,7 @@ columns:
     - wage_rate_of_pay_from
     - offered_wage_from
     - job_opp_wage_from
+    - wage_offer_from_9089
 
   wage_offer_to:
     - wage_offer_to
@@ -55,6 +57,7 @@ columns:
     - wage_rate_of_pay_to
     - offered_wage_to
     - job_opp_wage_to
+    - wage_offer_to_9089
 
   wage_unit:
     - wage_unit
@@ -63,23 +66,27 @@ columns:
     - pw_unit_of_pay
     - wage_offer_unit_of_pay
     - job_opp_wage_per
+    - wage_offer_unit_of_pay_9089
 
   pw_wage:
     - pw_wage
     - pw_wage_level
     - pw_amount
     - prevailing_wage
+    - pw_amount_9089
 
   pw_unit:
     - pw_unit
     - pw_unit_of_pay
     - prevailing_wage_unit
+    - pw_unit_of_pay_9089
 
   naics_code:
     - naics_code
     - naics
     - employer_naics_code
     - emp_naics
+    - naics_us_code
 
   soc_code:
     - soc_code

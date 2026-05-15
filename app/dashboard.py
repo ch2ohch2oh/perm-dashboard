@@ -22,12 +22,13 @@ BASE_CHART_LAYOUT = dict(
     margin=dict(l=18, r=18, t=48, b=18),
     xaxis=dict(showgrid=False, zeroline=False, linecolor="#dfe3eb"),
     yaxis=dict(showgrid=False, zeroline=False, linecolor="#dfe3eb"),
+    showlegend=False,
 )
 
 # --- Data Helpers ---
 
 @st.cache_data(show_spinner=False)
-def load_dataset(path: Path) -> pl.DataFrame:
+def load_dataset(path: Path, mtime: float) -> pl.DataFrame:
     if not path.exists():
         return pl.DataFrame()
     
@@ -90,6 +91,18 @@ def infer_completeness_cutoff(frame: pl.DataFrame) -> date | None:
             return monthly[i]["month"]
     return None
 
+
+@st.cache_data(show_spinner=False)
+def get_top_options(frame: pl.DataFrame, column: str, n: int = 100) -> list[str]:
+    return (
+        frame.group_by(column)
+        .agg(pl.len().alias("count"))
+        .sort("count", descending=True)
+        .head(n)
+        .get_column(column)
+        .to_list()
+    )
+
 # --- UI Components ---
 
 def centered_row():
@@ -121,7 +134,7 @@ def render_bar_chart(df: pl.DataFrame, x: str, y: str, title: str, height: int =
 def main():
     st.set_page_config(page_title="PERM Dashboard", layout="wide")
 
-    df = load_dataset(DATA_PATH)
+    df = load_dataset(DATA_PATH, DATA_PATH.stat().st_mtime)
     if df.height == 0:
         st.error("Dataset not found or empty. Run `scripts/build_perm_dataset.py` first.")
         st.stop()
@@ -136,11 +149,8 @@ def main():
     
     default_start = date(stats[1].year, stats[1].month, 1)
     
-    def get_top_options(col, n=100):
-        return df.group_by(col).agg(pl.len().alias("c")).sort("c", descending=True).head(n).get_column(col).to_list()
-
-    job_options = get_top_options("job_title")
-    employer_options = get_top_options("employer_name")
+    job_options = get_top_options(df, "job_title")
+    employer_options = get_top_options(df, "employer_name")
 
     # --- Header ---
     with centered_row():
@@ -154,11 +164,17 @@ def main():
         grain = c2.radio("Granularity", options=["Month", "Quarter", "Year"], horizontal=True)
 
         f1, f2 = st.columns(2, gap="medium")
-        sel_jobs = f1.multiselect("Job titles", options=job_options, placeholder="Top 100 jobs")
-        sel_employers = f2.multiselect("Employers", options=employer_options, placeholder="Top 100 employers")
+        sel_jobs = f1.multiselect(
+            "Job titles", options=job_options, placeholder="Top 100 jobs",
+            help="Limited to the 100 most frequent job titles for faster interaction."
+        )
+        sel_employers = f2.multiselect(
+            "Employers", options=employer_options, placeholder="Top 100 employers",
+            help="Limited to the 100 most frequent employers for faster interaction."
+        )
 
     # Apply Filters
-    start_date, end_date = date_range if isinstance(date_range, tuple) and len(date_range) == 2 else (stats[0], stats[2])
+    start_date, end_date = date_range if isinstance(date_range, (list, tuple)) and len(date_range) == 2 else (stats[0], stats[2])
     filtered = df.filter(
         (pl.col("event_date").is_between(start_date, end_date)) & 
         (pl.col("case_status") != "WITHDRAWN")
