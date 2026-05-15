@@ -166,9 +166,10 @@ def main():
     with centered_row():
         st.title("PERM Filing Dashboard")
         st.markdown(
-            "Insights into **Program Electronic Review Management (PERM)** trends. "
             "PERM is the process used by employers to obtain a permanent labor certification "
-            "for foreign nationals seeking to work in the United States."
+            "for foreign nationals seeking to work in the United States. During periods of layoffs, "
+            "many companies suspend PERM filings to comply with the Department of Labor's "
+            "6-month recruitment rules and minimize audit risks."
         )
 
     # --- Filters ---
