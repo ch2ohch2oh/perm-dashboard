@@ -11,7 +11,8 @@ import polars as pl
 import streamlit as st
 
 # --- Configuration & Constants ---
-DATA_PATH = Path("data/processed/perm_filings.parquet")
+ROOT_DIR = Path(__file__).parent.parent
+DATA_PATH = ROOT_DIR / "data" / "processed" / "perm_filings.parquet"
 ACCENT_COLOR = "#60a5fa"
 
 BASE_CHART_LAYOUT = dict(
@@ -32,14 +33,16 @@ def load_dataset(path: Path, mtime: float) -> pl.DataFrame:
     if not path.exists():
         return pl.DataFrame()
     
-    df = pl.read_parquet(path)
+    # Use lazy loading to reduce memory pressure
+    lf = pl.scan_parquet(path)
+    
     return (
-        df.with_columns([
+        lf.with_columns([
             pl.col("job_title").fill_null("Unknown"),
             pl.col("employer_name").fill_null("Unknown"),
             pl.col("worksite_city").fill_null("Unknown"),
-            pl.col("worksite_state").fill_null("Unknown"),
-            pl.col("case_status").fill_null("UNKNOWN"),
+            pl.col("worksite_state").fill_null("Unknown").cast(pl.Categorical),
+            pl.col("case_status").fill_null("UNKNOWN").cast(pl.Categorical),
             pl.col("received_date").alias("event_date"),
         ])
         .filter(pl.col("event_date").is_not_null())
@@ -47,6 +50,7 @@ def load_dataset(path: Path, mtime: float) -> pl.DataFrame:
             pl.col("event_date").dt.year().alias("event_year"),
             pl.concat_str(["worksite_city", pl.lit(", "), "worksite_state"]).alias("location"),
         ])
+        .collect()
     )
 
 def add_time_bucket(frame: pl.DataFrame, grain: str, source_col: str = "event_date") -> pl.DataFrame:
@@ -134,7 +138,8 @@ def render_bar_chart(df: pl.DataFrame, x: str, y: str, title: str, height: int =
 def main():
     st.set_page_config(page_title="PERM Dashboard", layout="wide")
 
-    df = load_dataset(DATA_PATH, DATA_PATH.stat().st_mtime)
+    mtime = DATA_PATH.stat().st_mtime if DATA_PATH.exists() else 0.0
+    df = load_dataset(DATA_PATH, mtime)
     if df.height == 0:
         st.error("Dataset not found or empty. Run `scripts/build_perm_dataset.py` first.")
         st.stop()
