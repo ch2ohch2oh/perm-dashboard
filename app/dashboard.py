@@ -159,8 +159,8 @@ def main():
         limit_date = pl.Series([completeness_cutoff]).dt.offset_by("3mo")[0]
         max_selectable = min(stats[2], limit_date)
     
-    job_options = get_top_options(df, "job_title", n=500)
-    employer_options = get_top_options(df, "employer_name", n=500)
+    job_options = get_top_options(df, "job_title", n=1000)
+    employer_options = get_top_options(df, "employer_name", n=1000)
 
     # --- Header ---
     with centered_row():
@@ -180,12 +180,12 @@ def main():
 
         f1, f2 = st.columns(2, gap="medium")
         sel_jobs = f1.multiselect(
-            "Job titles", options=job_options, placeholder="Top 500 jobs",
-            help="Limited to the 500 most frequent job titles for faster interaction."
+            "Job titles", options=job_options, placeholder="Top 1000 jobs",
+            help="Limited to the 1000 most frequent job titles for faster interaction."
         )
         sel_employers = f2.multiselect(
-            "Employers", options=employer_options, placeholder="Top 500 employers",
-            help="Limited to the 500 most frequent employers for faster interaction."
+            "Employers", options=employer_options, placeholder="Top 1000 employers",
+            help="Limited to the 1000 most frequent employers for faster interaction."
         )
 
     # Apply Filters
