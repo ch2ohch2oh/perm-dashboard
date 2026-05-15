@@ -160,8 +160,8 @@ def main():
         limit_date = pl.Series([completeness_cutoff]).dt.offset_by("3mo")[0]
         max_selectable = min(stats[2], limit_date)
     
-    job_options = get_top_options(DATA_PATH, mtime, "job_title", n=50000)
-    employer_options = get_top_options(DATA_PATH, mtime, "employer_name", n=50000)
+    job_options = get_top_options(DATA_PATH, mtime, "job_title", n=1000)
+    employer_options = get_top_options(DATA_PATH, mtime, "employer_name", n=1000)
 
     # --- Header ---
     with centered_row():
@@ -181,11 +181,11 @@ def main():
 
         f1, f2 = st.columns(2, gap="medium")
         sel_jobs = f1.multiselect(
-            "Job titles", options=job_options, placeholder="Top 50,000 jobs",
+            "Job titles", options=job_options, placeholder="Top 1000 jobs",
             help="Select from the most frequent job titles."
         )
         sel_employers = f2.multiselect(
-            "Employers", options=employer_options, placeholder="Top 50,000 employers",
+            "Employers", options=employer_options, placeholder="Top 1000 employers",
             help="Select from the most frequent employers."
         )
 
