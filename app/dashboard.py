@@ -97,7 +97,8 @@ def infer_completeness_cutoff(frame: pl.DataFrame) -> date | None:
 
 
 @st.cache_data(show_spinner=False)
-def get_top_options(frame: pl.DataFrame, column: str, n: int = 100) -> list[str]:
+def get_top_options(path: Path, mtime: float, column: str, n: int = 1000) -> list[str]:
+    frame = pl.read_parquet(path)
     return (
         frame.group_by(column)
         .agg(pl.len().alias("count"))
@@ -159,8 +160,8 @@ def main():
         limit_date = pl.Series([completeness_cutoff]).dt.offset_by("3mo")[0]
         max_selectable = min(stats[2], limit_date)
     
-    job_options = get_top_options(df, "job_title", n=1000)
-    employer_options = get_top_options(df, "employer_name", n=1000)
+    job_options = get_top_options(DATA_PATH, mtime, "job_title", n=1000)
+    employer_options = get_top_options(DATA_PATH, mtime, "employer_name", n=1000)
 
     # --- Header ---
     with centered_row():
@@ -180,13 +181,18 @@ def main():
 
         f1, f2 = st.columns(2, gap="medium")
         sel_jobs = f1.multiselect(
-            "Job titles", options=job_options, placeholder="Top 1000 jobs",
-            help="Limited to the 1000 most frequent job titles for faster interaction."
+            "Quick Select: Top 1000 Jobs", options=job_options, 
+            help="Select from the most frequent job titles."
         )
         sel_employers = f2.multiselect(
-            "Employers", options=employer_options, placeholder="Top 1000 employers",
-            help="Limited to the 1000 most frequent employers for faster interaction."
+            "Quick Select: Top 1000 Employers", options=employer_options,
+            help="Select from the most frequent employers."
         )
+        
+        # Advanced Search
+        with st.expander("Advanced Regex Search (use this for OpenAI, Anthropic, etc.)"):
+            search_job = st.text_input("Job Title Regex", placeholder="e.g. .*Engineer.*", help="Case-insensitive regex search")
+            search_emp = st.text_input("Employer Name Regex", placeholder="e.g. .*OpenAI.*", help="Case-insensitive regex search")
 
     # Apply Filters
     start_date, end_date = date_range if isinstance(date_range, (list, tuple)) and len(date_range) == 2 else (stats[0], stats[2])
@@ -196,6 +202,8 @@ def main():
     )
     if sel_jobs: filtered = filtered.filter(pl.col("job_title").is_in(sel_jobs))
     if sel_employers: filtered = filtered.filter(pl.col("employer_name").is_in(sel_employers))
+    if search_job: filtered = filtered.filter(pl.col("job_title").str.contains("(?i)" + search_job))
+    if search_emp: filtered = filtered.filter(pl.col("employer_name").str.contains("(?i)" + search_emp))
 
     if filtered.height == 0:
         st.warning("No rows match the current filters.")
