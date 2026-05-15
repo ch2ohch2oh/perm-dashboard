@@ -127,7 +127,7 @@ def render_bar_chart(df: pl.DataFrame, x: str, y: str, title: str, height: int =
     fig.update_xaxes(title="Filings", range=[0, val_max * 1.3])
     fig.update_yaxes(title=None, categoryorder="total ascending")
     style_figure(fig, height=height)
-    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+    st.plotly_chart(fig, theme="streamlit", width="stretch")
 
 # --- Main Application ---
 
@@ -149,6 +149,11 @@ def main():
     
     default_start = date(stats[1].year, stats[1].month, 1)
     
+    max_selectable = stats[2]
+    if completeness_cutoff:
+        limit_date = pl.Series([completeness_cutoff]).dt.offset_by("3mo")[0]
+        max_selectable = min(stats[2], limit_date)
+    
     job_options = get_top_options(df, "job_title")
     employer_options = get_top_options(df, "employer_name")
 
@@ -160,7 +165,7 @@ def main():
     # --- Filters ---
     with centered_row():
         c1, c2 = st.columns([1.35, 1.0], gap="medium")
-        date_range = c1.date_input("Choose a date range", value=(default_start, stats[2]), min_value=stats[0], max_value=stats[2])
+        date_range = c1.date_input("Choose a date range", value=(default_start, max_selectable), min_value=stats[0], max_value=max_selectable)
         grain = c2.radio("Granularity", options=["Month", "Quarter", "Year"], horizontal=True)
 
         f1, f2 = st.columns(2, gap="medium")
@@ -199,7 +204,7 @@ def main():
             fig.add_annotation(x=completeness_cutoff, y=1, yref="paper", text="Coverage cutoff", showarrow=False, xanchor="left", bgcolor="rgba(255,255,255,0.8)")
         
         style_figure(fig, height=420)
-        st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+        st.plotly_chart(fig, theme="streamlit", width="stretch")
         
         # Summary Note
         scope_parts = [f"from {start_date:%b %d, %Y} to {end_date:%b %d, %Y}"]
