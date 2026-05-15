@@ -10,7 +10,7 @@ import polars as pl
 import streamlit as st
 
 DATA_PATH = Path("data/processed/perm_filings.parquet")
-ACCENT_COLOR = "#9EE6CF"
+ACCENT_COLOR = "#60a5fa"
 
 BASE_CHART_LAYOUT = dict(
     template="plotly_white",
@@ -177,23 +177,16 @@ min_event, default_start, max_event = (
 default_start = month_start(default_start)
 job_options = top_n_options(df, "job_title", n=100)
 employer_options = top_n_options(df, "employer_name", n=100)
-row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.columns((0.1, 2, 0.2, 1, 0.1))
-row0_1.title("Analyzing PERM Filing Trends")
-row0_2.subheader("A Streamlit app for exploring filing volume, top roles, locations, and employers.")
+row0_spacer1, row0_1, row0_spacer2 = st.columns((0.1, 3.2, 0.1))
+row0_1.title("PERM Filing Dashboard")
 
-row1_spacer1, row1_1, row1_spacer2 = st.columns((0.1, 3.2, 0.1))
-with row1_1:
-    st.markdown(
-        "Use the filing window and filters below to narrow the current view. The charts focus on filing activity, "
-        "top roles, top locations, and the employers most active in the selected slice."
-    )
 
 row2_spacer1, row2_1, row2_spacer2 = st.columns((0.1, 3.2, 0.1))
 with row2_1:
     top_controls = st.columns([1.35, 1.0], gap="medium")
     with top_controls[0]:
         date_window = st.date_input(
-            "Time frame",
+            "Choose a date range (All available is the default)",
             value=(default_start, max_event),
             min_value=min_event,
             max_value=max_event,
@@ -225,7 +218,7 @@ with row2_1:
 if isinstance(date_window, tuple) and len(date_window) == 2:
     start_date, end_date = date_window
 else:
-    start_date, end_date = default_start, max_event
+    start_date, end_date = min_event, max_event
 
 filtered = df.filter(pl.col("event_date").is_between(start_date, end_date))
 filtered = filtered.filter(pl.col("case_status") != "WITHDRAWN")
@@ -249,7 +242,7 @@ if selected_employers:
     scope_parts.append(f"{len(selected_employers)} selected employers")
 else:
     scope_parts.append("all employers")
-note_parts = ["`WITHDRAWN` cases are excluded from all charts on this page"]
+note_parts = ["Withdrawn cases are excluded from all charts on this page"]
 if completeness_cutoff is not None:
     note_parts.append(
         f"coverage considered complete through {format_pretty_date(completeness_cutoff)} based on the full dataset trend"
@@ -374,8 +367,14 @@ with row5_1:
     employer_max = top_employers["filings"].max() if not top_employers.empty else 1
     fig_employers.update_xaxes(title="Filings", range=[0, employer_max * 1.3 if employer_max else 1])
     fig_employers.update_yaxes(title=None, categoryorder="total ascending")
-    style_figure(fig_employers, height=420)
+    employer_height = max(420, 42 * len(top_employers) + 40)
+    style_figure(fig_employers, height=employer_height)
     st.plotly_chart(fig_employers, theme="streamlit", use_container_width=True)
     st.markdown(
         "Employer rankings make it easier to see which companies dominate the current view and whether filing activity is concentrated in a small set of firms."
     )
+
+st.markdown("---")
+footer_spacer1, footer_1, footer_spacer2 = st.columns((0.1, 3.2, 0.1))
+with footer_1:
+    st.caption("Data sourced from the [Office of Foreign Labor Certification](https://www.dol.gov/agencies/eta/foreign-labor/performance).")
